@@ -56,7 +56,7 @@ public abstract class VitruviusApplicationTest extends VitruviusUnmonitoredAppli
 	 * @return <code>true</code> if recored changes shall be unresolved, <code>false</code> otherwise
 	 */
 	protected boolean unresolveChanges() {
-		return false;
+		return true;
 	}
 
 	/**

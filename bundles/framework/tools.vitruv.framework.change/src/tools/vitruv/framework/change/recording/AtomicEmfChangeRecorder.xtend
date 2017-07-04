@@ -29,7 +29,7 @@ class AtomicEmfChangeRecorder {
 	 * the recorded changes.
 	 */
 	new() {
-		this(false)
+		this(true)
 	}
 	
 	/**
