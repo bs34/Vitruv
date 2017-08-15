@@ -24,11 +24,11 @@ abstract class AbstractCompositeChangeImpl<C extends VitruviusChange> implements
     }
 
     override addChange(C change) {
-		if (change != null) this.changes.add(change);
+		if (change !== null) this.changes.add(change);
     }
 	
 	override removeChange(C change) {
-		if (change != null) this.changes.remove(change);
+		if (change !== null) this.changes.remove(change);
 	}
 				
 	override containsConcreteChange() {
@@ -58,7 +58,7 @@ abstract class AbstractCompositeChangeImpl<C extends VitruviusChange> implements
 
 		var lastURI = changes.get(0).URI;
 		for (change : changes) {
-			if (change.URI != lastURI) {
+			if (lastURI !== null && change.URI !== null && change.URI != lastURI) {
 				return false;
 			}
 			lastURI = change.URI;
@@ -97,6 +97,10 @@ abstract class AbstractCompositeChangeImpl<C extends VitruviusChange> implements
 		for (change : changes.reverseView) {
 			change.applyBackwardIfLegacy();
 		}
+	}
+	
+	override getAffectedEObjects() {
+		return changes.fold(newArrayList, [list, element | list += element.affectedEObjects; return list]).filterNull;
 	}
 	
 }

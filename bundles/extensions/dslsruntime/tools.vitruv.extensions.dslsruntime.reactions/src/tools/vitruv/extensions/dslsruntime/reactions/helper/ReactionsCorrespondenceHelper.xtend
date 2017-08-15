@@ -23,11 +23,11 @@ final class ReactionsCorrespondenceHelper {
 	}
 
 	public static def removeCorrespondencesBetweenElements(CorrespondenceModel correspondenceModel,
-		EObject source, EObject target) {
+		EObject source, EObject target, String tag) {
 		val correspondenceModelView = correspondenceModel.reactionsView;
 		val sourceTuid = correspondenceModel.getTuid(source);
 		val targetTuid = correspondenceModel.getTuid(target);
-		val correspondences = correspondenceModelView.getCorrespondencesForTuids(#[sourceTuid]);
+		val correspondences = correspondenceModelView.getCorrespondencesForTuids(#[sourceTuid]).filter[it.tag == tag];
 		for (correspondence : correspondences.toList) {
 			if ((correspondence.ATuids.contains(sourceTuid) && correspondence.BTuids.contains(targetTuid)) ||
 				(correspondence.BTuids.contains(sourceTuid) && correspondence.ATuids.contains(targetTuid))) {
@@ -75,7 +75,7 @@ final class ReactionsCorrespondenceHelper {
 
 	public static def <T> List<T> getCorrespondingModelElements(EObject sourceElement, Class<T> affectedElementClass,
 		String expectedTag, Function1<T, Boolean> preconditionMethod, CorrespondenceModel correspondenceModel) {
-		val nonNullPreconditionMethod = if(preconditionMethod != null) preconditionMethod else [T input|true];
+		val nonNullPreconditionMethod = if(preconditionMethod !== null) preconditionMethod else [T input|true];
 		val targetElements = new ArrayList<T>();
 		try {
 			val correspondingObjects = getCorrespondingObjectsOfType(correspondenceModel,

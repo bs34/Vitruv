@@ -9,11 +9,11 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 import edu.kit.ipd.sdq.commons.util.java.lang.StringUtil;
 import tools.vitruv.framework.change.description.CompositeContainerChange;
+import tools.vitruv.framework.change.description.PropagatedChange;
 import tools.vitruv.framework.change.description.TransactionalChange;
 import tools.vitruv.framework.change.description.VitruviusChangeFactory;
 import tools.vitruv.framework.change.recording.AtomicEmfChangeRecorder;
 import tools.vitruv.framework.util.bridges.EcoreResourceBridge;
-import tools.vitruv.framework.util.datatypes.VURI;
 
 /**
  * Basic test class for all Vitruvius application tests that require a test
@@ -72,15 +72,20 @@ public abstract class VitruviusApplicationTest extends VitruviusUnmonitoredAppli
 	 */
 	protected abstract void cleanup();
 
-	private void propagateChanges(final VURI vuri) {
-		final List<TransactionalChange> changes = this.changeRecorder.endRecording();
+	private List<PropagatedChange> propagateChanges() {
+		this.changeRecorder.endRecording();
+		final List<TransactionalChange> changes = unresolveChanges() ? changeRecorder.getUnresolvedChanges() : changeRecorder.getResolvedChanges();
 		CompositeContainerChange compositeChange = VitruviusChangeFactory.getInstance().createCompositeChange(changes);
-		this.getVirtualModel().propagateChange(compositeChange);
+		List<PropagatedChange> propagationResult = this.getVirtualModel().propagateChange(compositeChange);
+		this.changeRecorder.beginRecording();
+		return propagationResult;
 	}
 
 	private void startRecordingChanges(Resource resource) {
-		VURI vuri = VURI.getInstance(resource);
-		this.changeRecorder.beginRecording(vuri, Collections.singleton(resource));
+		this.changeRecorder.addToRecording(resource);
+		if (!changeRecorder.isRecording()) {
+			this.changeRecorder.beginRecording();
+		}
 	}
 
 	/**
@@ -101,13 +106,15 @@ public abstract class VitruviusApplicationTest extends VitruviusUnmonitoredAppli
 	 * @param object
 	 *            the {@link EObject} to save and propagated recorded changes
 	 *            for
+	 * @return a list with the {@link PropagatedChange}s, containing the original and consequential changes
 	 * @throws IOException
 	 */
-	protected void saveAndSynchronizeChanges(EObject object) throws IOException {
+	protected List<PropagatedChange> saveAndSynchronizeChanges(EObject object) throws IOException {
 		Resource resource = object.eResource();
 		EcoreResourceBridge.saveResource(resource);
-		this.propagateChanges(VURI.getInstance(resource));
+		List<PropagatedChange> result = this.propagateChanges();
 		this.startRecordingChanges(resource);
+		return result;
 	}
 
 	/**
@@ -145,9 +152,9 @@ public abstract class VitruviusApplicationTest extends VitruviusUnmonitoredAppli
 			throw new IllegalArgumentException();
 		}
 		Resource resource = getModelResource(modelPathInProject);
-		VURI vuri = VURI.getInstance(resource);
 		resource.delete(Collections.EMPTY_MAP);
-		propagateChanges(vuri);
+		propagateChanges();
+		this.changeRecorder.removeFromRecording(resource);
 	}
 
 }

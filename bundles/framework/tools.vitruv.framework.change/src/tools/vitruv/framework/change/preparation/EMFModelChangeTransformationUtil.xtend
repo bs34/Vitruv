@@ -17,6 +17,7 @@ import tools.vitruv.framework.change.echange.feature.attribute.ReplaceSingleValu
 import tools.vitruv.framework.change.echange.feature.attribute.SubtractiveAttributeEChange
 
 import static extension edu.kit.ipd.sdq.commons.util.org.eclipse.emf.ecore.EObjectUtil.*
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 /**
  * A utility class providing extension methods for transforming change descriptions to change models.
@@ -84,7 +85,7 @@ package class EMFModelChangeTransformationUtil {
 	}
 	
 	def private static boolean isRootContainer(EObject container) {
-		return container == null //|| container instanceof ChangeDescription
+		return container === null //|| container instanceof ChangeDescription
 }
 	
 	def static boolean hasNonDefaultValue(EObject eObject) {
@@ -111,7 +112,7 @@ package class EMFModelChangeTransformationUtil {
 		val value = eObject.eGet(feature)
 		if (feature.many) {
 			val list = value as List<?>
-			return list != null && !list.isEmpty
+			return list !== null && !list.isEmpty
 		} else {
 			// TODO MK is equals (== in Xtend) for feature default value comparison okay or is identity (===) needed?
 			return value != feature.defaultValue
@@ -129,8 +130,7 @@ package class EMFModelChangeTransformationUtil {
 	def static EChange createInsertRootChange(EObject rootToInsert, EObject oldRootContainer, Resource oldRootResource, Resource newResource, int index) {
 		val isCreate = isCreate(oldRootContainer, oldRootResource)
 		if (isCreate) {
-
-			return TypeInferringCompoundEChangeFactory.instance.createCreateAndInsertRootChange(rootToInsert, newResource, index);
+			return TypeInferringCompoundEChangeFactory.instance.createCreateAndInsertRootChange(rootToInsert, newResource, index, EcoreUtil.getID(rootToInsert));
 		} else {
 
 			return TypeInferringAtomicEChangeFactory.instance.createInsertRootChange(rootToInsert, newResource, index)
@@ -138,18 +138,18 @@ package class EMFModelChangeTransformationUtil {
 	}
 	
 	def static boolean isCreate(EObject oldContainer, Resource oldResource) {
-		return (oldContainer == null || oldContainer instanceof ChangeDescription) && oldResource == null
+		return (oldContainer === null || oldContainer instanceof ChangeDescription) && oldResource === null
 	}
 	
 	def static boolean isDelete(EObject newContainer, Resource newResource) {
-		return (newContainer == null || newContainer instanceof ChangeDescription) && newResource == null
+		return (newContainer === null || newContainer instanceof ChangeDescription) && newResource === null
 	}
 
 	def static EChange createRemoveRootChange(EObject rootToRemove, EObject newRootContainer, Resource newRootResource, Resource oldResource, int index) {
 		val isDelete = isDelete(newRootContainer, newRootResource)
 		if (isDelete) {
 
-			return TypeInferringCompoundEChangeFactory.instance.createRemoveAndDeleteRootChange(rootToRemove, oldResource, index);
+			return TypeInferringCompoundEChangeFactory.instance.createRemoveAndDeleteRootChange(rootToRemove, oldResource, index, EcoreUtil.getID(rootToRemove));
 		} else {
 
 			return TypeInferringAtomicEChangeFactory.instance.createRemoveRootChange(rootToRemove, oldResource, index);
@@ -161,10 +161,10 @@ package class EMFModelChangeTransformationUtil {
 
 		val oldResource = referenceValue.eResource
 
-		val isCreate = forceCreate || (isContainment && oldResource == null)
+		val isCreate = forceCreate || (isContainment && oldResource === null)
 		if (isCreate) {
 
-			return TypeInferringCompoundEChangeFactory.instance.createCreateAndInsertNonRootChange(affectedEObject, affectedReference, referenceValue, index);
+			return TypeInferringCompoundEChangeFactory.instance.createCreateAndInsertNonRootChange(affectedEObject, affectedReference, referenceValue, index, EcoreUtil.getID(referenceValue));
 		} else {
 
 			return TypeInferringAtomicEChangeFactory.instance.createInsertReferenceChange(affectedEObject, affectedReference, referenceValue, index);
@@ -177,7 +177,7 @@ package class EMFModelChangeTransformationUtil {
 		val isDelete = isContainment && isDelete(newContainer, newResource)
 		if (isDelete) {
 
-			return TypeInferringCompoundEChangeFactory.instance.createRemoveAndDeleteNonRootChange(affectedEObject, affectedReference, referenceValue, index);
+			return TypeInferringCompoundEChangeFactory.instance.createRemoveAndDeleteNonRootChange(affectedEObject, affectedReference, referenceValue, index, EcoreUtil.getID(referenceValue));
 		} else {
 
 			return TypeInferringAtomicEChangeFactory.instance.createRemoveReferenceChange(affectedEObject, affectedReference, referenceValue, index);
@@ -188,12 +188,12 @@ package class EMFModelChangeTransformationUtil {
 		val isContainment = affectedReference.containment
 
 		if (forceCreate || isContainment) {
-			if (oldReferenceValue == null) {
-				return TypeInferringCompoundEChangeFactory.instance.createCreateAndReplaceNonRootChange(affectedEObject, affectedReference, newReferenceValue)
-			} else if (newReferenceValue == null) {
-				return TypeInferringCompoundEChangeFactory.instance.createReplaceAndDeleteNonRootChange(affectedEObject, affectedReference, oldReferenceValue)
+			if (oldReferenceValue === null) {
+				return TypeInferringCompoundEChangeFactory.instance.createCreateAndReplaceNonRootChange(affectedEObject, affectedReference, newReferenceValue, EcoreUtil.getID(newReferenceValue))
+			} else if (newReferenceValue === null) {
+				return TypeInferringCompoundEChangeFactory.instance.createReplaceAndDeleteNonRootChange(affectedEObject, affectedReference, oldReferenceValue, EcoreUtil.getID(oldReferenceValue))
 			} else {
-				return TypeInferringCompoundEChangeFactory.instance.createCreateAndReplaceAndDeleteNonRootChange(affectedEObject, affectedReference, oldReferenceValue, newReferenceValue);				
+				return TypeInferringCompoundEChangeFactory.instance.createCreateAndReplaceAndDeleteNonRootChange(affectedEObject, affectedReference, oldReferenceValue, newReferenceValue, EcoreUtil.getID(oldReferenceValue), EcoreUtil.getID(newReferenceValue));				
 			}
 		} else {
 

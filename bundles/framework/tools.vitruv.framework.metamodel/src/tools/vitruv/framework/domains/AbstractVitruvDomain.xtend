@@ -16,8 +16,9 @@ import java.util.ArrayList
 import org.eclipse.emf.ecore.EPackage
 import java.util.Collection
 import tools.vitruv.framework.domains.VitruvDomain
+import org.eclipse.emf.ecore.EClass
 
-class AbstractVitruvDomain extends AbstractURIHaving implements TuidCalculator, TuidUpdateListener, VitruvDomain {
+abstract class AbstractVitruvDomain extends AbstractURIHaving implements TuidCalculator, TuidUpdateListener, VitruvDomain {
 	Collection<String> fileExtensions
 	TuidCalculatorAndResolver tuidCalculatorAndResolver
 	Set<String> nsURIs
@@ -65,8 +66,6 @@ class AbstractVitruvDomain extends AbstractURIHaving implements TuidCalculator, 
 		this.nsURIs = (metamodelRootPackage.nsURIsRecursive + furtherRootPackages.map[nsURIsRecursive].flatten).toSet
 		this.defaultLoadOptions = defaultLoadOptions
 		this.defaultSaveOptions = defaultSaveOptions
-		TuidManager.instance.addTuidCalculator(this);
-		TuidManager.instance.addTuidUpdateListener(this);
 	}
 
 	override Collection<String> getFileExtensions() {
@@ -92,7 +91,7 @@ class AbstractVitruvDomain extends AbstractURIHaving implements TuidCalculator, 
 
 	override VURI getModelVURIContainingIdentifiedEObject(Tuid tuid) {
 		val modelVURI = this.tuidCalculatorAndResolver.getModelVURIContainingIdentifiedEObject(tuid.toString)
-		if (null == modelVURI) {
+		if (null === modelVURI) {
 			return null;
 		}
 		return VURI::getInstance(modelVURI)
@@ -111,9 +110,13 @@ class AbstractVitruvDomain extends AbstractURIHaving implements TuidCalculator, 
 	}
 
 	override boolean isInstanceOfDomainMetamodel(EObject eObject) {
-		if (null === eObject || null === eObject.eClass() || null === eObject.eClass().getEPackage() ||
-			null === eObject.eClass().getEPackage().getNsURI() ||
-			!this.nsURIs.contains(eObject.eClass().getEPackage().getNsURI())) {
+		if (eObject === null) {
+			return false;
+		}
+		val eClass = if (eObject instanceof EClass) eObject else eObject.eClass(); 
+		
+		if (null === eClass || null === eClass.getEPackage() ||	null === eClass.getEPackage().getNsURI() ||
+			!this.nsURIs.contains(eClass.getEPackage().getNsURI())) {
 			return false
 		}
 		return true
@@ -175,6 +178,11 @@ class AbstractVitruvDomain extends AbstractURIHaving implements TuidCalculator, 
 	
 	override getName() {
 		return name;
+	}
+	
+	override registerAtTuidManagement() {
+		TuidManager.instance.addTuidCalculator(this);
+		TuidManager.instance.addTuidUpdateListener(this);
 	}
 	
 }

@@ -1,6 +1,8 @@
 package tools.vitruv.framework.tests.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,10 +26,9 @@ import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.launching.LibraryLocation;
 
-import com.google.common.io.Files;
-
 import tools.vitruv.framework.change.processing.ChangePropagationSpecification;
 import tools.vitruv.framework.domains.VitruvDomain;
+import tools.vitruv.framework.domains.VitruviusProjectBuilderApplicator;
 import tools.vitruv.framework.domains.AbstractVitruvDomain;
 import tools.vitruv.framework.tuid.AttributeTuidCalculatorAndResolver;
 import tools.vitruv.framework.userinteraction.UserInteracting;
@@ -215,7 +216,12 @@ public final class TestUtil {
 		String testWorkspacePath = System.getProperty(VM_ARGUMENT_TEST_WORKSPACE_PATH);
 		File testWorkspace = null;
 		if (testWorkspacePath == null) {
-			testWorkspace = Files.createTempDir();
+			try {
+				testWorkspace = Files.createTempDirectory("vitruv-test-workspace").toFile();
+				testWorkspace.deleteOnExit();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		} else {
 			testWorkspace = new File(testWorkspacePath);
 		}
@@ -249,7 +255,12 @@ public final class TestUtil {
 	public static VitruvDomain createVitruvDomain(final String name, final EPackage metamodelRootPackage,
 			final String fileExt) {
 		final VitruvDomain domain = new AbstractVitruvDomain(name, metamodelRootPackage,
-				new AttributeTuidCalculatorAndResolver(metamodelRootPackage.getNsURI()), fileExt);
+				new AttributeTuidCalculatorAndResolver(metamodelRootPackage.getNsURI()), fileExt) {
+			@Override
+			public VitruviusProjectBuilderApplicator getBuilderApplicator() {
+				return null;
+			}
+		};
 		return domain;
 	}
 

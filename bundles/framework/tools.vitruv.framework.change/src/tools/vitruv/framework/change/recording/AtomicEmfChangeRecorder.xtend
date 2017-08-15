@@ -1,6 +1,5 @@
 package tools.vitruv.framework.change.recording
 
-import java.util.ArrayList
 import java.util.Collection
 import java.util.List
 import org.eclipse.emf.common.notify.Notification
@@ -16,91 +15,132 @@ import tools.vitruv.framework.change.echange.compound.CompoundEChange
 import tools.vitruv.framework.change.echange.eobject.CreateEObject
 import tools.vitruv.framework.change.echange.resolve.EChangeUnresolver
 import tools.vitruv.framework.change.echange.resolve.StagingArea
-import tools.vitruv.framework.util.datatypes.VURI
+import tools.vitruv.framework.change.description.impl.LegacyEMFModelChangeImpl
+import java.util.Set
+import org.eclipse.xtend.lib.annotations.Accessors
 
 class AtomicEmfChangeRecorder {
-	var List<ChangeDescription> changeDescriptions;
-	var VURI modelVURI;
-	var Collection<Notifier> elementsToObserve
+	val Set<Notifier> elementsToObserve
 	var boolean unresolveRecordedChanges
+	val boolean updateTuids;
+	var List<TransactionalChange> resolvedChanges;
+	var List<TransactionalChange> unresolvedChanges;
+	val AtomicChangeRecorder changeRecorder;
 	
 	/**
 	 * Constructor for the AtmoicEMFChangeRecorder, which does not unresolve
-	 * the recorded changes.
+	 * the recorded changes, but updated Tuids.
 	 */
 	new() {
-		this(true)
+		this(true, true)
 	}
-	
+
 	/**
-	 * Constructor for AtomicEMFChangeRecorder
-	 * @param 	unresolveRecordedChanges The recorded changes will be replaced
-	 * 			by unresolved changes, which referenced EObjects are proxy objects.
+	 * Constructors which updated Tuids
+	 * 
+	 * @param unresolveRecordedChanges -
+	 * 		The recorded changes will be replaced by unresolved changes, which referenced EObjects are proxy objects.
 	 */
 	new(boolean unresolveRecordedChanges) {
-		this.elementsToObserve = new ArrayList<Notifier>();
-		changeRecorder.setRecordingTransientFeatures(false)
-		changeRecorder.setResolveProxies(true)
+		this(unresolveRecordedChanges, true);
+	}
+
+	/**
+	 * Constructor for AtomicEMFChangeRecorder
+	 * @param unresolveRecordedChanges -
+	 * 		The recorded changes will be replaced by unresolved changes, which referenced EObjects are proxy objects.
+	 * @param updateTuids -
+	 * 		specifies whether TUIDs shall be updated or not.
+	 */
+	new(boolean unresolveRecordedChanges, boolean updateTuids) {
+		this.elementsToObserve = newHashSet();
 		this.unresolveRecordedChanges = unresolveRecordedChanges
+		this.updateTuids = updateTuids;
+		this.changeRecorder = new AtomicChangeRecorder();
+	}
+
+	def void beginRecording() {
+		changeRecorder.reset;
+		changeRecorder.beginRecording(this.elementsToObserve);
 	}
 	
-	def void beginRecording(VURI modelVURI, Collection<? extends Notifier> elementsToObserve) {
-		this.modelVURI = modelVURI;
-		this.elementsToObserve.clear();
-		this.elementsToObserve += elementsToObserve;
-		this.changeDescriptions = new ArrayList<ChangeDescription>();
-		changeRecorder.beginRecording(elementsToObserve)
+	def void addToRecording(Notifier elementToObserve) {
+		this.elementsToObserve += elementToObserve;
+		if (isRecording) {
+			changeRecorder.beginRecording(elementsToObserve);
+		}
 	}
 	
-	def List<TransactionalChange> endRecording() {
+	def void removeFromRecording(Notifier elementToObserve) {
+		this.elementsToObserve -= elementToObserve;
+		if (isRecording) {
+			changeRecorder.beginRecording(elementsToObserve);
+		}
+	}
+
+	/** Stops recording without returning a result */
+	def void stopRecording() {
 		if (!isRecording) {
 			throw new IllegalStateException();
 		}
 		changeRecorder.endRecording();
-		changeDescriptions.reverseView.forEach[applyAndReverse];
-		var transactionalChanges = changeDescriptions.filterNull.map[createModelChange].filterNull.toList;
-		if (unresolveRecordedChanges)
-			correctChanges(transactionalChanges)
-		return transactionalChanges
 	}
-	
-	private def createModelChange(ChangeDescription changeDescription) {
-		if (!(changeDescription.objectChanges.isEmpty && changeDescription.resourceChanges.isEmpty)) {
-			var TransactionalChange result = null;
-			if (unresolveRecordedChanges) { 
-				result = VitruviusChangeFactory.instance.createEMFModelChange(changeDescription, modelVURI)
-				changeDescription.applyAndReverse()
-			} else {
-				result = VitruviusChangeFactory.instance.createLegacyEMFModelChange(changeDescription, modelVURI);
-				result.applyForward();
-			}
-			return result;
+
+	def void endRecording() {
+		if (!isRecording) {
+			throw new IllegalStateException();
 		}
-		changeDescription.applyAndReverse()
-		return null;
+		changeRecorder.endRecording();
+		// Only take those that do not contain only objectsToAttach (I don't know why)
+		val relevantChangeDescriptions = 
+			changeRecorder.changeDescriptions.filter[!(objectChanges.isEmpty && resourceChanges.isEmpty)].toList
+		if (unresolveRecordedChanges) {
+			relevantChangeDescriptions.reverseView.forEach[applyAndReverse];
+			unresolvedChanges = relevantChangeDescriptions.filterNull.map[createModelChange(true, unresolveRecordedChanges && updateTuids)].filterNull.toList;
+			correctChanges(unresolvedChanges)
+		}
+		relevantChangeDescriptions.reverseView.forEach[applyAndReverse];
+		resolvedChanges = relevantChangeDescriptions.filterNull.map[createModelChange(false, !unresolveRecordedChanges && updateTuids)].filterNull.toList;
 	}
 	
-	def List<TransactionalChange> restartRecording() {
-		val modelChanges = endRecording()
-		beginRecording(modelVURI, elementsToObserve)
-		return modelChanges;
+	public def List<TransactionalChange> getUnresolvedChanges() {
+		return unresolvedChanges;
 	}
 	
+	public def List<TransactionalChange> getResolvedChanges() {
+		return resolvedChanges;
+	}
+
+	private def createModelChange(ChangeDescription changeDescription, boolean unresolveChanges, boolean updateTuids) {
+		var TransactionalChange result = null;
+		if (unresolveChanges) {
+			result = VitruviusChangeFactory.instance.createEMFModelChange(changeDescription)
+			changeDescription.applyAndReverse()
+		} else {
+			result = VitruviusChangeFactory.instance.createLegacyEMFModelChange(changeDescription);
+			if (updateTuids) {
+				result.applyForward();
+			} else {
+				(result as LegacyEMFModelChangeImpl).applyForwardWithoutTuidUpdate();
+			}
+		}
+		return result;
+	}
+
 	def boolean isRecording() {
 		return changeRecorder.isRecording()
 	}
-	
+
 	def void dispose() {
 		changeRecorder.dispose()
 	}
-	
-	
+
 	/*
 	 * The recorder doesn't produce the correct changes, because all created changes of one change
 	 * description are resolved to the same state before all changes were applied. Every atomic change must be resolved 
 	 * directly to the state before itself is applied => roll everything back and re-apply all changes, while
 	 * correcting the wrong changes.
-	 */		
+	 */
 	def private void correctChanges(List<TransactionalChange> changes) {
 		var eChanges = changes.map [
 			val echanges = it.EChanges;
@@ -122,41 +162,51 @@ class AtomicEmfChangeRecorder {
 			}
 		}
 	}
-	
+
 	/*
 	 * Updates the staging area to the current state of the model.
 	 */
 	def private dispatch void updateStagingArea(EChange change) {
 		// Is needed to create a dispatch method which is applicable for EChange base class.
 	}
-	
+
 	def private dispatch void updateStagingArea(CreateEObject<EObject> change) {
 		// The newly created object is in an resource after the change, so
 		// the correct staging area can be chosen, before the change
 		// is applied backward.
 		change.stagingArea = StagingArea.getStagingArea(change.affectedEObject.eResource)
 	}
-	
+
 	def private dispatch void updateStagingArea(CompoundEChange change) {
 		for (a : change.atomicChanges) {
 			updateStagingArea(a)
 		}
 	}
-	
-	
 
 	/**
 	 * A change recorder that restarts after each change notification to get atomic change descriptions.
 	 */
-	ChangeRecorder changeRecorder = new ChangeRecorder() {
+	static class AtomicChangeRecorder extends ChangeRecorder {
 		private Collection<?> rootObjects;
 		private boolean isDisposed = false;
+		@Accessors(PUBLIC_GETTER)
+		private var List<ChangeDescription> changeDescriptions;
+		
+		new() {
+			setRecordingTransientFeatures(false);
+			setResolveProxies(true);
+			reset();
+		}
+		
+		public def void reset() {
+			this.changeDescriptions = newArrayList;
+		}
 		
 		override dispose() {
 			this.isDisposed = true;
 			super.dispose()
 		}
-		
+
 		override notifyChanged(Notification notification) {
 			if (isRecording && !isDisposed) {
 				super.notifyChanged(notification);
@@ -164,20 +214,20 @@ class AtomicEmfChangeRecorder {
 				beginRecording(rootObjects);
 			}
 		}
-		
+
 		override beginRecording(Collection<?> rootObjects) {
-			if (!isDisposed) { 
+			if (!isDisposed) {
 				this.rootObjects = rootObjects;
 				super.beginRecording(rootObjects);
 			}
 		}
-		
+
 		override endRecording() {
-			if (!isDisposed) { 
+			if (!isDisposed) {
 				changeDescriptions += super.endRecording();
 			}
 			return changeDescription;
 		}
 	}
-	
+
 }

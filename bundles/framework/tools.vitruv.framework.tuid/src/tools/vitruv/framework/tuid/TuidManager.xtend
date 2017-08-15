@@ -1,23 +1,22 @@
 package tools.vitruv.framework.tuid
 
-import java.util.List
-import java.util.ArrayList
 import java.util.Map
 import org.eclipse.emf.ecore.EObject
 import java.util.HashMap
 import tools.vitruv.framework.util.XtendAssertHelper
 import org.apache.log4j.Logger
+import java.util.Set
 
 final class TuidManager {
 	private static val logger = Logger.getLogger(TuidManager);
 	private static val instance = new TuidManager();
-	private val List<TuidCalculator> tuidCalculator;
-	private val List<TuidUpdateListener> tuidUpdateListener;
+	private val Set<TuidCalculator> tuidCalculator;
+	private val Set<TuidUpdateListener> tuidUpdateListener;
 	private val Map<EObject, Tuid> tuidUpdateCache = new HashMap<EObject, Tuid>();
 	
 	private new() {
-		this.tuidCalculator = new ArrayList<TuidCalculator>();
-		this.tuidUpdateListener = new ArrayList<TuidUpdateListener>();
+		this.tuidCalculator = newHashSet();
+		this.tuidUpdateListener = newHashSet();
 	}
 	
 	public static def TuidManager getInstance() {
@@ -26,7 +25,7 @@ final class TuidManager {
 	}
 	
 	public def void addTuidUpdateListener(TuidUpdateListener updateListener) {
-		if (updateListener != null) {
+		if (updateListener !== null) {
 			tuidUpdateListener += updateListener;
 		}
 	}
@@ -36,7 +35,7 @@ final class TuidManager {
 	}
 	
 	public def void addTuidCalculator(TuidCalculator calculator) {
-		if (calculator != null) {
+		if (calculator !== null) {
 			tuidCalculator += calculator;
 		}
 	}
@@ -54,7 +53,7 @@ final class TuidManager {
 		var TuidCalculator resultCalculator = null;
 		for (potentialCalculator : tuidCalculator) {
 			if (potentialCalculator.canCalculateTuid(object)) {
-				if (resultCalculator != null) {
+				if (resultCalculator !== null) {
 					throw new IllegalStateException("There are two Tuid calculators registered that can handle the EObject: " + object + ", which are " + resultCalculator + " and " + potentialCalculator);
 				}
 				resultCalculator = potentialCalculator;
@@ -64,12 +63,12 @@ final class TuidManager {
 	}
 	
 	def private boolean hasTuidCalculator(EObject object) {
-		return object.tuidCalculator != null;
+		return object.tuidCalculator !== null;
 	}
 	
 	def private Tuid calculateTuid(EObject object) {
 		val tuidCalculator = object.tuidCalculator;
-		if (tuidCalculator != null) {
+		if (tuidCalculator !== null) {
 			return tuidCalculator.calculateTuid(object);
 		} else {
 			throw new IllegalArgumentException("No Tuid calculator registered for EObject: " + object);

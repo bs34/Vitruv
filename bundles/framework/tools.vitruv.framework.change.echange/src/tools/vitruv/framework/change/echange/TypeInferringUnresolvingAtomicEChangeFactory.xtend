@@ -29,7 +29,7 @@ final class TypeInferringUnresolvingAtomicEChangeFactory extends TypeInferringAt
 	 * @return The singleton instance.
 	 */
 	def public static TypeInferringUnresolvingAtomicEChangeFactory getInstance() {
-		if (instance == null) {
+		if (instance === null) {
 			instance = new TypeInferringUnresolvingAtomicEChangeFactory()
 		}
 		return instance
@@ -57,8 +57,8 @@ final class TypeInferringUnresolvingAtomicEChangeFactory extends TypeInferringAt
 	}
 
 	override protected <A extends EObject> void setEObjectExistenceChange(EObjectExistenceEChange<A> change,
-		A affectedEObject, Resource resource) {
-		super.setEObjectExistenceChange(change, affectedEObject, resource)
+		A affectedEObject, Resource resource, String objectId) {
+		super.setEObjectExistenceChange(change, affectedEObject, resource, objectId)
 		change.unresolve
 	}
 }
