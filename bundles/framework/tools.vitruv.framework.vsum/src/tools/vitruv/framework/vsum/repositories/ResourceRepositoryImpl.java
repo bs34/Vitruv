@@ -35,6 +35,7 @@ import tools.vitruv.framework.util.command.EMFCommandBridge;
 import tools.vitruv.framework.util.command.VitruviusRecordingCommand;
 import tools.vitruv.framework.util.datatypes.ModelInstance;
 import tools.vitruv.framework.util.datatypes.VURI;
+import tools.vitruv.framework.variability.VaVeModelImpl;
 import tools.vitruv.framework.vsum.ModelRepository;
 import tools.vitruv.framework.vsum.helper.FileSystemHelper;
 
@@ -48,6 +49,7 @@ public class ResourceRepositoryImpl implements ModelRepository, CorrespondencePr
 
     private final Map<VURI, ModelInstance> modelInstances;
     private InternalCorrespondenceModel correspondenceModel;
+    private VaVeModelImpl vaveModel;
     private final FileSystemHelper fileSystemHelper;
     private final File folder;
     private final AtomicEmfChangeRecorder changeRecorder;
@@ -68,6 +70,7 @@ public class ResourceRepositoryImpl implements ModelRepository, CorrespondencePr
         this.fileSystemHelper = new FileSystemHelper(this.folder);
 
         initializeCorrespondenceModel();
+        initializeVaVeModel();
         loadVURIsOfVSMUModelInstances();
 
         String unresolvePropagatedChanges = System.getProperty(VM_ARGUMENT_UNRESOLVE_PROPAGATED_CHANGES);
@@ -243,6 +246,22 @@ public class ResourceRepositoryImpl implements ModelRepository, CorrespondencePr
             }
             this.correspondenceModel = new CorrespondenceModelImpl(new TuidResolverImpl(this.metamodelRepository, this),
                     this, this.metamodelRepository, correspondencesVURI, correspondencesResource);
+            return null;
+        });
+    }
+
+    // integrating vave into the vsum
+    private void initializeVaVeModel() {
+        createRecordingCommandAndExecuteCommandOnTransactionalDomain(() -> {
+            VURI vaveVURI = this.fileSystemHelper.getVaVeVURI();
+            Resource vaveResource = null;
+            if (URIUtil.existsResourceAtUri(vaveVURI.getEMFUri())) {
+                logger.debug("Loading vave model from: " + this.fileSystemHelper.getVaVeVURI());
+                vaveResource = this.resourceSet.getResource(vaveVURI.getEMFUri(), true);
+            } else {
+                vaveResource = this.resourceSet.createResource(vaveVURI.getEMFUri());
+            }
+            this.vaveModel = new VaVeModelImpl(vaveResource);
             return null;
         });
     }

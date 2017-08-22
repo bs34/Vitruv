@@ -25,6 +25,7 @@ public class FileSystemHelper {
         createFolderIfNotExisting(vsumProjectFolder);
         createFolderInFolder(getVsumProjectFolder(), VsumConstants.CORRESPONDENCE_FOLDER_NAME);
         createFolderInFolder(getVsumProjectFolder(), VsumConstants.VSUM_FOLDER_NAME);
+        createFolderInFolder(getVsumProjectFolder(), VsumConstants.VAVE_FOLDER_NAME);
     }
 
     public VURI getCorrespondencesVURI() {
@@ -217,6 +218,32 @@ public class FileSystemHelper {
         if (!folder.exists()) {
             folder.mkdir();
         }
+    }
+
+    public VURI getVaVeVURI() {
+        File vaveFile = getVaVeFile();
+        return VURI.getInstance(EMFBridge.getEmfFileUriForFile(vaveFile));
+    }
+
+    public File getVaVeFile() {
+        String fileName = getVaVeFileName();
+        return getVaVeFile(fileName);
+    }
+
+    private static String getVaVeFileName() {
+        String fileExtSeparator = VitruviusConstants.getFileExtSeparator();
+        String fileExt = VitruviusConstants.getVaVeFileExt();
+        String fileName = "VaVe" + fileExtSeparator + fileExt;
+        return fileName;
+    }
+
+    public File getVaVeFile(final String fileName) {
+        File vaveFile = getFileInFolder(getVaVeFolder(), fileName);
+        return vaveFile;
+    }
+
+    private File getVaVeFolder() {
+        return getFolderInFolder(getVsumProjectFolder(), VsumConstants.VAVE_FOLDER_NAME);
     }
 
 }
