@@ -50,6 +50,10 @@ class VirtualModelImpl implements InternalVirtualModel {
 		this.resourceRepository.getCorrespondenceModel();
 	}
 	
+	override getVaVeModel() {
+		this.resourceRepository.getVaVeModel();
+	}
+	
 	override getModelInstance(VURI modelVuri) {
 		return this.resourceRepository.getModel(modelVuri);
 	}
@@ -72,7 +76,14 @@ class VirtualModelImpl implements InternalVirtualModel {
 	
 	override propagateChange(VitruviusChange change) {
 		// Save is done by the change propagator because it has to be performed before finishing sync
-		return changePropagator.propagateChange(change);
+		// verwaltung für version die in aktueller konfiguration geladen ist. 
+		// vave modell mit einer system variante mit einer version, auf welche man alles einspielen würde
+		// schnittstelle erweitern vom vave um zwischen varianten zu wechseln
+		//TODO vitrivus change persistieren und ihn als konfiguration speichern um wechseln zu können
+		val propagatedChanges = changePropagator.propagateChange(change)
+		getVaVeModel.addVersion(propagatedChanges)
+		return propagatedChanges
+//		return changePropagator.propagateChange(change);
 	}
 	
 	override reverseChanges(List<PropagatedChange> changes) {

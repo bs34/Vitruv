@@ -276,6 +276,15 @@ public class ResourceRepositoryImpl implements ModelRepository, CorrespondencePr
         return this.correspondenceModel;
     }
 
+    /**
+     * Returns the vave model in this model repository
+     *
+     * @return the vave model
+     */
+    public VaVeModelImpl getVaVeModel() {
+        return this.vaveModel;
+    }
+
     private void loadVURIsOfVSMUModelInstances() {
         Set<VURI> vuris = this.fileSystemHelper.loadVsumVURIsFromFile();
         for (VURI vuri : vuris) {
