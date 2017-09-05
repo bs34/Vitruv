@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="System" nsURI="edu.kit.sdq.metamodels.vave" nsPrefix="System">
+  <eClassifiers xsi:type="ecore:EClass" name="System">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variant" lowerBound="1"
+        eType="#//Variant" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Variant">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="version" upperBound="-1"
+        eType="#//Version" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VariationPoint">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variant" upperBound="-1"
+        eType="#//Variant" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CustomizedVP" eSuperTypes="#//VariationPoint"/>
+  <eClassifiers xsi:type="ecore:EClass" name="SubstitutionVP" eSuperTypes="#//VariationPoint"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Version"/>
+</ecore:EPackage>
