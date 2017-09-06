@@ -9,30 +9,24 @@ import tools.vitruv.framework.change.echange.compound.ExplicitUnsetEReference
 import tools.vitruv.framework.change.echange.feature.attribute.SubtractiveAttributeEChange
 
 import static extension tools.vitruv.framework.change.echange.resolve.EChangeUnresolver.*
+import tools.vitruv.framework.change.uuid.UuidGeneratorAndResolver
 
 final class TypeInferringUnresolvingCompoundEChangeFactory extends TypeInferringCompoundEChangeFactory {
-	protected TypeInferringAtomicEChangeFactory atomicFactory
-	private static TypeInferringUnresolvingCompoundEChangeFactory instance
-
-	private new(TypeInferringAtomicEChangeFactory atomicFactory) {
-		super(atomicFactory)
+	val EChangeIdManager eChangeIdManager;
+	
+	new(UuidGeneratorAndResolver uuidProviderAndResolver) {
+		super(new TypeInferringUnresolvingAtomicEChangeFactory(uuidProviderAndResolver));
+		this.eChangeIdManager = new EChangeIdManager(uuidProviderAndResolver, uuidProviderAndResolver, false);
 	}
-
-	/**
-	 * Get the singleton instance of the factory.
-	 * @return The singleton instance.
-	 */
-	def public static TypeInferringUnresolvingCompoundEChangeFactory getInstance() {
-		if (instance === null) {
-			instance = new TypeInferringUnresolvingCompoundEChangeFactory(
-				TypeInferringUnresolvingAtomicEChangeFactory.instance)
-		}
-		return instance
+	
+	def private setIds(EChange change) {
+		eChangeIdManager.setOrGenerateIds(change);
 	}
-
+	
 	override protected <A extends EObject, F extends EStructuralFeature> setUnsetChangeFeatures(
 		ExplicitUnsetEFeature<A, F> change, A affectedEObject, F affectedFeature) {
 		super.setUnsetChangeFeatures(change, affectedEObject, affectedFeature)
+		setIds(change);
 		change.unresolveExplicitUnsetEFeature
 	}
 

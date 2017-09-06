@@ -18,6 +18,7 @@ import tools.vitruv.framework.change.description.PropagatedChange
 import tools.vitruv.framework.util.command.EMFCommandBridge
 import tools.vitruv.framework.vsum.repositories.ResourceRepositoryImpl
 import tools.vitruv.framework.vsum.repositories.ModelRepositoryImpl
+import tools.vitruv.framework.change.echange.EChangeIdManager
 
 class VirtualModelImpl implements InternalVirtualModel {
 	private val ResourceRepositoryImpl resourceRepository;
@@ -26,6 +27,7 @@ class VirtualModelImpl implements InternalVirtualModel {
 	private val ChangePropagator changePropagator;
 	private val ChangePropagationSpecificationProvider changePropagationSpecificationProvider;
 	private val File folder;
+	private val EChangeIdManager eChangeIdManager;
 	
 	public new(File folder, UserInteracting userInteracting, VirtualModelConfiguration modelConfiguration) {
 		this.folder = folder;
@@ -43,6 +45,7 @@ class VirtualModelImpl implements InternalVirtualModel {
 		}
 		this.changePropagationSpecificationProvider = changePropagationSpecificationRepository;
 		this.changePropagator = new ChangePropagatorImpl(resourceRepository, changePropagationSpecificationProvider, metamodelRepository, resourceRepository, modelRepository);
+		this.eChangeIdManager = new EChangeIdManager(this.uuidGeneratorAndResolver, this.uuidGeneratorAndResolver, false);
 		VirtualModelManager.instance.putVirtualModel(this);
 	}
 	
@@ -63,7 +66,7 @@ class VirtualModelImpl implements InternalVirtualModel {
 	}
 	
 	override persistRootElement(VURI persistenceVuri, EObject rootElement) {
-		this.resourceRepository.persistRootElement(persistenceVuri, rootElement);
+		this.resourceRepository.persistAsRoot(rootElement, persistenceVuri);
 	}
 	
 	override executeCommand(Callable<Void> command) {
@@ -75,25 +78,21 @@ class VirtualModelImpl implements InternalVirtualModel {
 	}
 	
 	override propagateChange(VitruviusChange change) {
+		change.unresolveIfApplicable
 		// Save is done by the change propagator because it has to be performed before finishing sync
-		// verwaltung für version die in aktueller konfiguration geladen ist. 
-		// vave modell mit einer system variante mit einer version, auf welche man alles einspielen würde
-		// schnittstelle erweitern vom vave um zwischen varianten zu wechseln
-		//TODO vitrivus change persistieren und ihn als konfiguration speichern um wechseln zu können
-		val propagatedChanges = changePropagator.propagateChange(change)
-		getVaVeModel.addVersion(propagatedChanges)
-		return propagatedChanges
-//		return changePropagator.propagateChange(change);
+		val result = changePropagator.propagateChange(change);
+		getVaVeModel.addVersion(result)
+		return result;
 	}
 	
 	override reverseChanges(List<PropagatedChange> changes) {
-		val command = EMFCommandBridge.createVitruviusTransformationRecordingCommand([|
-			changes.reverseView.forEach[applyBackward];
+		val command = EMFCommandBridge.createVitruviusRecordingCommand([|
+			changes.reverseView.forEach[it.applyBackward(uuidGeneratorAndResolver)];
 			return null;
 		])
 		resourceRepository.executeRecordingCommandOnTransactionalDomain(command);
 
-		val changedEObjects = command.getAffectedObjects().filter(EObject)
+		val changedEObjects = changes.map[originalChange.affectedEObjects + consequentialChanges.affectedEObjects].flatten
 		changedEObjects.map[eResource].filterNull.forEach[modified = true];
 		save();
 	}
@@ -107,4 +106,9 @@ class VirtualModelImpl implements InternalVirtualModel {
 	override File getFolder() {
 		return folder;
 	}
+	
+	override getUuidGeneratorAndResolver() {
+		return resourceRepository.uuidGeneratorAndResolver
+	}
+	
 }
