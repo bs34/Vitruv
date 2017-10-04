@@ -6,10 +6,11 @@ import java.io.IOException
 import tools.vitruv.framework.util.bridges.EcoreResourceBridge
 import static extension tools.vitruv.framework.util.bridges.JavaBridge.*
 import tools.vitruv.framework.variability.System.SystemFactory
-import tools.vitruv.framework.change.description.VitruviusChange
 import tools.vitruv.framework.variability.System.Variant
+import tools.vitruv.framework.variability.System.VariationPoint
 import tools.vitruv.framework.change.description.PropagatedChange
 import java.util.List
+import org.eclipse.emf.ecore.EObject
 
 class VaVeModelImpl implements VaVeModel {
 	
@@ -19,8 +20,7 @@ class VaVeModelImpl implements VaVeModel {
 	new(Resource vaveResource) {
 		root = loadVaVe(vaveResource)
 	}
-// VaVe ist dazu da rauszufinden, welche Änderungen man zurückrollen oder anwenden möchte in Abhängigkeit
-// einer bestimmten Konfiguration
+// VaVe ist dazu da rauszufinden, welche Änderungen man zurückrollen oder anwenden möchte in Abhängigkeit einer bestimmten Konfiguration
 	def private System loadVaVe(Resource vaveResource) {
 		try {
 			vaveResource.load(null)
@@ -37,7 +37,14 @@ class VaVeModelImpl implements VaVeModel {
 	
 	override public addVersion(List<PropagatedChange> propagatedChange) {
 		val version = SystemFactory::eINSTANCE.createVersion
+		version.eResource.contents.add(propagatedChange as EObject)
 		variant.version += version
+	}
+	
+	override public addVariationPoint(String variationpoint) {
+		val varpoint = SystemFactory::eINSTANCE.createVariationPoint
+		varpoint.name = variationpoint
+		variant.variationpoint += varpoint
 	}
 
 }

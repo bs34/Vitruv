@@ -13,12 +13,15 @@
     </genClasses>
     <genClasses ecoreClass="VaVe.ecore#//Variant">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference VaVe.ecore#//Variant/version"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference VaVe.ecore#//Variant/variationpoint"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute VaVe.ecore#//Variant/name"/>
     </genClasses>
     <genClasses ecoreClass="VaVe.ecore#//VariationPoint">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference VaVe.ecore#//VariationPoint/variant"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute VaVe.ecore#//VariationPoint/name"/>
     </genClasses>
-    <genClasses ecoreClass="VaVe.ecore#//CustomizedVP"/>
-    <genClasses ecoreClass="VaVe.ecore#//SubstitutionVP"/>
-    <genClasses ecoreClass="VaVe.ecore#//Version"/>
+    <genClasses ecoreClass="VaVe.ecore#//Version">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute VaVe.ecore#//Version/number"/>
+    </genClasses>
   </genPackages>
 </genmodel:GenModel>

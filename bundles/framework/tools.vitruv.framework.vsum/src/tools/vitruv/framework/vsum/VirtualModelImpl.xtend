@@ -81,8 +81,14 @@ class VirtualModelImpl implements InternalVirtualModel {
 		change.unresolveIfApplicable
 		// Save is done by the change propagator because it has to be performed before finishing sync
 		val result = changePropagator.propagateChange(change);
-		getVaVeModel.addVersion(result)
+		setUpVaVe(result);
 		return result;
+	}
+	
+	def private setUpVaVe(List<PropagatedChange> change) {
+		getVaVeModel.addVersion(change)
+		reverseChanges(change)
+		getVaVeModel.addVariationPoint("Watermarking")
 	}
 	
 	override reverseChanges(List<PropagatedChange> changes) {

@@ -8,12 +8,16 @@
   <eClassifiers xsi:type="ecore:EClass" name="Variant">
     <eStructuralFeatures xsi:type="ecore:EReference" name="version" upperBound="-1"
         eType="#//Version" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variationpoint" upperBound="-1"
+        eType="#//VariationPoint" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="VariationPoint">
     <eStructuralFeatures xsi:type="ecore:EReference" name="variant" upperBound="-1"
         eType="#//Variant" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CustomizedVP" eSuperTypes="#//VariationPoint"/>
-  <eClassifiers xsi:type="ecore:EClass" name="SubstitutionVP" eSuperTypes="#//VariationPoint"/>
-  <eClassifiers xsi:type="ecore:EClass" name="Version"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Version">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="number" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
 </ecore:EPackage>
