@@ -14,9 +14,11 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
+
 import tools.vitruv.framework.change.echange.eobject.EObjectAddedEChange;
 import tools.vitruv.framework.change.echange.eobject.EObjectSubtractedEChange;
 import tools.vitruv.framework.change.echange.eobject.EobjectPackage;
+
 import tools.vitruv.framework.change.echange.feature.reference.AdditiveReferenceEChange;
 import tools.vitruv.framework.change.echange.feature.reference.ReferencePackage;
 import tools.vitruv.framework.change.echange.feature.reference.ReplaceSingleValuedEReference;
@@ -35,6 +37,7 @@ import tools.vitruv.framework.change.echange.feature.single.impl.ReplaceSingleVa
  * <ul>
  *   <li>{@link tools.vitruv.framework.change.echange.feature.reference.impl.ReplaceSingleValuedEReferenceImpl#getNewValue <em>New Value</em>}</li>
  *   <li>{@link tools.vitruv.framework.change.echange.feature.reference.impl.ReplaceSingleValuedEReferenceImpl#getNewValueID <em>New Value ID</em>}</li>
+ *   <li>{@link tools.vitruv.framework.change.echange.feature.reference.impl.ReplaceSingleValuedEReferenceImpl#isWasUnset <em>Was Unset</em>}</li>
  *   <li>{@link tools.vitruv.framework.change.echange.feature.reference.impl.ReplaceSingleValuedEReferenceImpl#getOldValue <em>Old Value</em>}</li>
  *   <li>{@link tools.vitruv.framework.change.echange.feature.reference.impl.ReplaceSingleValuedEReferenceImpl#getOldValueID <em>Old Value ID</em>}</li>
  * </ul>
@@ -71,6 +74,26 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 	 * @ordered
 	 */
 	protected String newValueID = NEW_VALUE_ID_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isWasUnset() <em>Was Unset</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isWasUnset()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean WAS_UNSET_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isWasUnset() <em>Was Unset</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isWasUnset()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean wasUnset = WAS_UNSET_EDEFAULT;
 
 	/**
 	 * The cached value of the '{@link #getOldValue() <em>Old Value</em>}' reference.
@@ -186,6 +209,27 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public boolean isWasUnset() {
+		return wasUnset;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public void setWasUnset(boolean newWasUnset) {
+		boolean oldWasUnset = wasUnset;
+		wasUnset = newWasUnset;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET, oldWasUnset, wasUnset));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	@SuppressWarnings("unchecked")
 	public T getOldValue() {
 		if (oldValue != null && oldValue.eIsProxy()) {
@@ -264,6 +308,8 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 				return basicGetNewValue();
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__NEW_VALUE_ID:
 				return getNewValueID();
+			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET:
+				return isWasUnset();
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__OLD_VALUE:
 				if (resolve) return getOldValue();
 				return basicGetOldValue();
@@ -287,6 +333,9 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 				return;
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__NEW_VALUE_ID:
 				setNewValueID((String)newValue);
+				return;
+			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET:
+				setWasUnset((Boolean)newValue);
 				return;
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__OLD_VALUE:
 				setOldValue((T)newValue);
@@ -312,6 +361,9 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__NEW_VALUE_ID:
 				setNewValueID(NEW_VALUE_ID_EDEFAULT);
 				return;
+			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET:
+				setWasUnset(WAS_UNSET_EDEFAULT);
+				return;
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__OLD_VALUE:
 				setOldValue((T)null);
 				return;
@@ -334,6 +386,8 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 				return newValue != null;
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__NEW_VALUE_ID:
 				return NEW_VALUE_ID_EDEFAULT == null ? newValueID != null : !NEW_VALUE_ID_EDEFAULT.equals(newValueID);
+			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET:
+				return wasUnset != WAS_UNSET_EDEFAULT;
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__OLD_VALUE:
 				return oldValue != null;
 			case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__OLD_VALUE_ID:
@@ -363,6 +417,7 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 		}
 		if (baseClass == AdditiveReferenceEChange.class) {
 			switch (derivedFeatureID) {
+				case ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET: return ReferencePackage.ADDITIVE_REFERENCE_ECHANGE__WAS_UNSET;
 				default: return -1;
 			}
 		}
@@ -402,6 +457,7 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 		}
 		if (baseClass == AdditiveReferenceEChange.class) {
 			switch (baseFeatureID) {
+				case ReferencePackage.ADDITIVE_REFERENCE_ECHANGE__WAS_UNSET: return ReferencePackage.REPLACE_SINGLE_VALUED_EREFERENCE__WAS_UNSET;
 				default: return -1;
 			}
 		}
@@ -482,6 +538,8 @@ public class ReplaceSingleValuedEReferenceImpl<A extends EObject, T extends EObj
 		StringBuffer result = new StringBuffer(super.toString());
 		result.append(" (newValueID: ");
 		result.append(newValueID);
+		result.append(", wasUnset: ");
+		result.append(wasUnset);
 		result.append(", oldValueID: ");
 		result.append(oldValueID);
 		result.append(')');

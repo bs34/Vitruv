@@ -7,6 +7,7 @@ import static extension tools.vitruv.framework.change.echange.resolve.EChangeUnr
 import org.eclipse.emf.ecore.EAttribute
 import org.eclipse.emf.ecore.EReference
 import tools.vitruv.framework.change.uuid.UuidGeneratorAndResolver
+import org.eclipse.emf.ecore.EStructuralFeature
 
 /**
  * Factory singleton class for elements of change models.
@@ -26,15 +27,15 @@ final class TypeInferringUnresolvingAtomicEChangeFactory extends TypeInferringAt
 		eChangeIdManager.setOrGenerateIds(change);
 	}
 	
-	override <A extends EObject> createCreateEObjectChange(A affectedEObject, Resource resource) {
-		val result = super.<A>createCreateEObjectChange(affectedEObject, resource)
+	override <A extends EObject> createCreateEObjectChange(A affectedEObject) {
+		val result = super.<A>createCreateEObjectChange(affectedEObject)
 		setIds(result);
 		result.unresolve
 		return result;
 	}
 	
-	override <A extends EObject> createDeleteEObjectChange(A affectedEObject, Resource resource) {
-		val result = super.<A>createDeleteEObjectChange(affectedEObject, resource)
+	override <A extends EObject> createDeleteEObjectChange(A affectedEObject) {
+		val result = super.<A>createDeleteEObjectChange(affectedEObject)
 		setIds(result);
 		result.unresolve
 		return result;
@@ -96,4 +97,10 @@ final class TypeInferringUnresolvingAtomicEChangeFactory extends TypeInferringAt
 		return result;
 	}
 	
+	override <A extends EObject,F extends EStructuralFeature> createUnsetFeatureChange(A affectedEObject, F affectedFeature) {
+		val result = super.<A, F>createUnsetFeatureChange(affectedEObject, affectedFeature)
+		setIds(result);
+		result.unresolve
+		return result;
+	}
 }

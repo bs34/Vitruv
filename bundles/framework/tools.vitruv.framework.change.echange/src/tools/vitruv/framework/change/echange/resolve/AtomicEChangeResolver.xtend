@@ -1,6 +1,5 @@
 package tools.vitruv.framework.change.echange.resolve
 
-import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
@@ -76,27 +75,7 @@ class AtomicEChangeResolver {
 		if (valueId === null) {
 			return null;
 		}
-		if (!change.affectedFeature.containment) {
-			// Non containment => New object is already in resource
-			return uuidResolver.getEObject(valueId)
-		}
-		if (!isInserted) {
-			// Before => New object is in staging area.
-			return uuidResolver.getEObject(valueId);
-		} else {
-			// TODO HK Replace with UUID resolution!?
-			// After => New object is in containment reference.
-			if (change.affectedFeature.many) {
-				var list = change.affectedEObject.eGet(change.affectedFeature) as EList<T>
-				if (0 <= index && index < list.size) {
-					return list.get(index)
-				} else {
-					return value // Return unresolved
-				}
-			} else {
-				return change.affectedEObject.eGet(change.affectedFeature) as T
-			}			
-		}
+		return uuidResolver.getEObject(valueId)
 	}
 
 	/**
@@ -341,7 +320,7 @@ class AtomicEChangeResolver {
 		}
 		result = result && change.resolveEObjectExistenceEChange(uuidResolver, !resolveBefore)
 		if (!resolveBefore) {
-			result = consequentialChanges.resolveChangeList(uuidResolver, resolveBefore);	
+			result = consequentialChanges.reverseView.resolveChangeList(uuidResolver, resolveBefore);	
 		}
 		return result;
 	}
@@ -353,7 +332,7 @@ class AtomicEChangeResolver {
 	 * @param resolveBefore		{@code true} if the model is in state before the change,
 	 * 							{@code false} if the model is in state after.
 	 */
-	def private static boolean resolveChangeList(List<EChange> changeList, UuidResolver uuidResolver, boolean resolveBefore) {
+	def private static boolean resolveChangeList(List<? extends EChange> changeList, UuidResolver uuidResolver, boolean resolveBefore) {
 		return changeList.fold(true, [res, localChange | res && EChangeResolver.resolve(localChange, uuidResolver, resolveBefore, false)]);	
 	}
 }

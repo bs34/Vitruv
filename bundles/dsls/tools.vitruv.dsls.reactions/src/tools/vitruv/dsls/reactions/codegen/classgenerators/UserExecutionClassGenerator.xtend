@@ -32,7 +32,8 @@ class UserExecutionClassGenerator extends ClassGenerator {
 	var counterExecuteActionMethods = 1
 	var counterCheckMatcherPreconditionMethods = 1
 	var counterGetCorrespondenceSource = 1
-
+	private var JvmGenericType generatedClass
+	
 	new(TypesBuilderExtensionProvider typesBuilderExtensionProvider, EObject objectMappedToClass,
 		String qualifiedClassName) {
 		super(typesBuilderExtensionProvider)
@@ -45,13 +46,14 @@ class UserExecutionClassGenerator extends ClassGenerator {
 	}
 
 	override generateEmptyClass() {
-		return objectMappedToClass.toClass(qualifiedClassName) [
+		this.generatedClass = objectMappedToClass.toClass(qualifiedClassName) [
 			visibility = JvmVisibility.PRIVATE
 			static = true
 		]
+		return generatedClass;
 	}
 
-	override generateBody(JvmGenericType generatedClass) {
+	override generateBody() {
 		generatedClass => [
 			superTypes += typeRef(AbstractRepairRoutineRealization.UserExecution)
 			members += generateConstructor()
@@ -73,9 +75,9 @@ class UserExecutionClassGenerator extends ClassGenerator {
 
 	protected def JvmOperation generateUpdateElementMethod(String elementName, CodeBlock codeBlock,
 		Iterable<AccessibleElement> accessibleElements) {
-		return codeBlock.getOrGenerateMethod("update" + elementName.toFirstUpper + "Element", typeRef(Void.TYPE)) [
+		val code = codeBlock.code;
+		return code.getOrGenerateMethod("update" + elementName.toFirstUpper + "Element", typeRef(Void.TYPE)) [
 			parameters += generateAccessibleElementsParameters(accessibleElements);
-			val code = codeBlock.code;
 			if (code instanceof SimpleTextXBlockExpression) {
 				body = code.text;
 			} else {
